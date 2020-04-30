@@ -305,6 +305,7 @@ Janus.init = function(options) {
 		}
 		// Helper methods to attach/reattach a stream to a video element (previously part of adapter.js)
 		Janus.attachMediaStream = function(element, stream) {
+			element.stop();
 			try {
 				element.srcObject = stream;
 			} catch (e) {
@@ -314,8 +315,11 @@ Janus.init = function(options) {
 					Janus.error("Error attaching stream to element");
 				}
 			}
+			element.load();
+			element.play();
 		};
 		Janus.reattachMediaStream = function(to, from) {
+			to.stop();
 			try {
 				to.srcObject = from.srcObject;
 			} catch (e) {
@@ -325,6 +329,8 @@ Janus.init = function(options) {
 					Janus.error("Error reattaching stream to element");
 				}
 			}
+			to.load();
+			to.play();
 		};
 		// Detect tab close: make sure we don't loose existing onbeforeunload handlers
 		// (note: for iOS we need to subscribe to a different event, 'pagehide', see
@@ -641,13 +647,14 @@ function Janus(gatewayCallbacks) {
 			var config = pluginHandle.webrtcStuff;
 			if(config.pc && config.remoteSdp) {
 				// Add candidate right now
+				const iceCandidate = new RTCIceCandidate(candidate);
 				Janus.debug("Adding remote candidate:", candidate);
 				if(!candidate || candidate.completed === true) {
 					// end-of-candidates
 					config.pc.addIceCandidate(Janus.endOfCandidates);
 				} else {
 					// New candidate
-					config.pc.addIceCandidate(candidate);
+					config.pc.addIceCandidate(iceCandidate);
 				}
 			} else {
 				// We didn't do setRemoteDescription (trickle got here before the offer?)
@@ -1851,13 +1858,14 @@ function Janus(gatewayCallbacks) {
 					if(config.candidates && config.candidates.length > 0) {
 						for(var i = 0; i< config.candidates.length; i++) {
 							var candidate = config.candidates[i];
+							const iceCandidate = new RTCIceCandidate(candidate);
 							Janus.debug("Adding remote candidate:", candidate);
 							if(!candidate || candidate.completed === true) {
 								// end-of-candidates
 								config.pc.addIceCandidate(Janus.endOfCandidates);
 							} else {
 								// New candidate
-								config.pc.addIceCandidate(candidate);
+								config.pc.addIceCandidate(iceCandidate);
 							}
 						}
 						config.candidates = [];
@@ -2417,13 +2425,14 @@ function Janus(gatewayCallbacks) {
 					if(config.candidates && config.candidates.length > 0) {
 						for(var i = 0; i< config.candidates.length; i++) {
 							var candidate = config.candidates[i];
+							const iceCandidate = new RTCIceCandidate(candidate);
 							Janus.debug("Adding remote candidate:", candidate);
 							if(!candidate || candidate.completed === true) {
 								// end-of-candidates
 								config.pc.addIceCandidate(Janus.endOfCandidates);
 							} else {
 								// New candidate
-								config.pc.addIceCandidate(candidate);
+								config.pc.addIceCandidate(iceCandidate);
 							}
 						}
 						config.candidates = [];
